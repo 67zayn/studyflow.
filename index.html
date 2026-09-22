@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="ระบบจัดการการเรียนและการบ้าน Todo Kanban สำหรับนักเรียนและนักศึกษา ดูภาพรวมงานทุกวิชาและโฟกัสงานเดี่ยวของตัวเองได้ง่ายๆ">
+  <title>StudyFlow - กระดานจัดการการเรียน & การบ้าน (Study Kanban)</title>
+
+  <!-- Typography: Sukhumvit Set Native + Prompt (Cadson Demak) for Windows/Cross-platform & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- External Icons: Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header" id="app-header">
+    <div class="header-left">
+      <div class="brand-logo" id="brand-logo">
+        <div class="logo-icon">
+          <i data-lucide="graduation-cap"></i>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">StudyFlow</span>
+          <span class="brand-subtitle">Study & Todo Kanban</span>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="nav-tabs" id="nav-tabs" aria-label="โหมดมุมมองงานเรียน">
+        <button class="nav-tab active" id="tab-all-tasks" data-view="all">
+          <i data-lucide="layers" class="tab-icon"></i>
+          <span>ภาพรวมงานเรียนทั้งหมด</span>
+          <span class="tab-count-badge" id="all-tasks-count">0</span>
+        </button>
+
+        <button class="nav-tab" id="tab-my-tasks" data-view="my">
+          <i data-lucide="user-check" class="tab-icon"></i>
+          <span>งานเดี่ยวของฉัน</span>
+          <span class="tab-count-badge" id="my-tasks-count">0</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Header Right Controls -->
+    <div class="header-right">
+      <!-- Search Input -->
+      <div class="search-box" id="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" id="global-search-input" placeholder="ค้นหางาน, วิชา, การบ้าน..." aria-label="ค้นหางานเรียน">
+        <button class="clear-search-btn" id="clear-search-btn" title="ล้างการค้นหา" style="display:none;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Theme Toggle Button (Prominent & Clear) -->
+      <button class="theme-toggle-btn" id="theme-toggle-btn" title="สลับธีมโหมดมืด/โหมดสว่าง"
+        aria-label="สลับธีมโหมดมืดหรือสว่าง">
+        <span class="theme-icon-container">
+          <i data-lucide="moon" class="theme-icon-dark"></i>
+          <i data-lucide="sun" class="theme-icon-light" style="display:none;"></i>
+        </span>
+        <span class="theme-toggle-text" id="theme-toggle-text">โหมดมืด</span>
+      </button>
+
+      <!-- New Task Button -->
+      <button class="btn btn-primary" id="btn-create-task">
+        <i data-lucide="plus"></i>
+        <span>เพิ่มงานใหม่</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-content" id="main-content">
+    <!-- Top Bar: Overview title + Stats + Filter Controls -->
+    <section class="dashboard-hero" id="dashboard-hero">
+      <div class="hero-top-row">
+        <div class="view-heading-group">
+          <h1 class="view-title" id="current-view-title">ภาพรวมงานเรียนทั้งหมด</h1>
+          <p class="view-description" id="current-view-desc">
+            ติดตามการบ้าน รายงาน โปรเจกต์ และการเตรียมสอบทุกวิชาในรูปแบบ Kanban พร้อมแจ้งเตือนกำหนดส่งแบบเรียลไทม์
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-load-sample" title="โหลดข้อมูลตัวอย่างวิชาเรียนและการบ้าน">
+            <i data-lucide="rotate-ccw"></i>
+            <span>รีเซ็ต / โหลดตัวอย่างวิชาเรียน</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Summary Cards -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card" data-stat="total">
+          <div class="stat-icon-wrapper total-icon">
+            <i data-lucide="book-open"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">งานทั้งหมด</span>
+            <span class="stat-value" id="stat-total">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card" data-stat="todo">
+          <div class="stat-icon-wrapper todo-icon">
+            <i data-lucide="clock"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">รอดำเนินการ</span>
+            <span class="stat-value" id="stat-todo">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card" data-stat="in-progress">
+          <div class="stat-icon-wrapper progress-icon">
+            <i data-lucide="loader-2"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">กำลังทำ</span>
+            <span class="stat-value" id="stat-in-progress">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card" data-stat="done">
+          <div class="stat-icon-wrapper done-icon">
+            <i data-lucide="check-circle-2"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">เสร็จสิ้นแล้ว</span>
+            <span class="stat-value" id="stat-done">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card" data-stat="overdue">
+          <div class="stat-icon-wrapper alert-icon">
+            <i data-lucide="alert-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">เกินกำหนด / วันนี้</span>
+            <span class="stat-value" id="stat-overdue">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter and Sort Bar -->
+      <div class="filter-bar" id="filter-bar">
+        <div class="filter-group">
+          <span class="filter-title">
+            <i data-lucide="filter" style="width:14px; height:14px;"></i>
+            <span>ตัวกรอง:</span>
+          </span>
+
+          <!-- Subject Filter -->
+          <select id="filter-subject" class="filter-select" aria-label="กรองตามรายวิชา">
+            <option value="all">ทุกรายวิชา</option>
+            <!-- Populated by JS -->
+          </select>
+
+          <!-- Task Type Filter (Individual vs Group) -->
+          <select id="filter-type" class="filter-select" aria-label="กรองประเภทงาน">
+            <option value="all">ทุกประเภทงาน</option>
+            <option value="individual">งานเดี่ยว</option>
+            <option value="group">งานกลุ่ม</option>
+          </select>
+
+          <!-- Priority Filter -->
+          <select id="filter-priority" class="filter-select" aria-label="กรองความสำคัญ">
+            <option value="all">ทุกระดับความสำคัญ</option>
+            <option value="urgent">ด่วนมาก</option>
+            <option value="high">สูง</option>
+            <option value="medium">ปานกลาง</option>
+            <option value="low">ต่ำ</option>
+          </select>
+
+          <!-- Deadline Filter -->
+          <select id="filter-deadline" class="filter-select" aria-label="กรองสถานะกำหนดส่ง">
+            <option value="all">ทุกกำหนดส่ง</option>
+            <option value="overdue">เกินกำหนดส่ง</option>
+            <option value="today">ครบกำหนดวันนี้</option>
+            <option value="week">ภายใน 7 วัน</option>
+          </select>
+        </div>
+
+        <div class="sort-group">
+          <label for="sort-select" class="sort-label">
+            <i data-lucide="arrow-up-down" style="width:14px; height:14px;"></i>
+            <span>เรียงตาม:</span>
+          </label>
+          <select id="sort-select" class="filter-select" aria-label="เรียงลำดับ">
+            <option value="deadline-asc">กำหนดส่ง (ใกล้สุดก่อน)</option>
+            <option value="deadline-desc">กำหนดส่ง (ไกลสุดก่อน)</option>
+            <option value="priority-desc">ความสำคัญ (สูงไปต่ำ)</option>
+            <option value="created-desc">วันที่สร้าง (ใหม่สุด)</option>
+            <option value="created-asc">วันที่สร้าง (เก่าสุด)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kanban Board Section -->
+    <section class="kanban-wrapper" id="kanban-wrapper">
+      <div class="kanban-board" id="kanban-board">
+
+        <!-- Column 1: To Do -->
+        <div class="kanban-column" id="col-todo" data-status="todo">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="column-bullet bullet-todo"></span>
+              <i data-lucide="clipboard-list" class="column-icon-status"></i>
+              <h2 class="column-title">รอดำเนินการ</h2>
+              <span class="column-counter" id="count-todo">0</span>
+            </div>
+            <button class="quick-add-btn" data-status="todo" title="เพิ่มงานในรอดำเนินการ">
+              <i data-lucide="plus"></i>
+            </button>
+          </div>
+          <div class="column-cards-container" id="cards-todo" data-status="todo">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Column 2: In Progress -->
+        <div class="kanban-column" id="col-in-progress" data-status="in-progress">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="column-bullet bullet-in-progress"></span>
+              <i data-lucide="play-circle" class="column-icon-status"></i>
+              <h2 class="column-title">กำลังทำ</h2>
+              <span class="column-counter" id="count-in-progress">0</span>
+            </div>
+            <button class="quick-add-btn" data-status="in-progress" title="เพิ่มงานในกำลังทำ">
+              <i data-lucide="plus"></i>
+            </button>
+          </div>
+          <div class="column-cards-container" id="cards-in-progress" data-status="in-progress">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Column 3: In Review -->
+        <div class="kanban-column" id="col-review" data-status="review">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="column-bullet bullet-review"></span>
+              <i data-lucide="check-square" class="column-icon-status"></i>
+              <h2 class="column-title">รอตรวจ / ตรวจทาน</h2>
+              <span class="column-counter" id="count-review">0</span>
+            </div>
+            <button class="quick-add-btn" data-status="review" title="เพิ่มงานในรอตรวจทาน">
+              <i data-lucide="plus"></i>
+            </button>
+          </div>
+          <div class="column-cards-container" id="cards-review" data-status="review">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Column 4: Done -->
+        <div class="kanban-column" id="col-done" data-status="done">
+          <div class="column-header">
+            <div class="column-title-group">
+              <span class="column-bullet bullet-done"></span>
+              <i data-lucide="check-circle" class="column-icon-status"></i>
+              <h2 class="column-title">ส่งแล้ว / เสร็จสิ้น</h2>
+              <span class="column-counter" id="count-done">0</span>
+            </div>
+            <button class="quick-add-btn" data-status="done" title="เพิ่มงานในเสร็จสิ้น">
+              <i data-lucide="plus"></i>
+            </button>
+          </div>
+          <div class="column-cards-container" id="cards-done" data-status="done">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Create / Edit Task -->
+  <div class="modal-overlay" id="task-modal-overlay" style="display:none;" aria-hidden="true">
+    <div class="modal-card" id="task-modal" role="dialog" aria-labelledby="modal-heading">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <i data-lucide="file-plus-2" class="modal-header-icon"></i>
+          <h3 class="modal-title" id="modal-heading">เพิ่มงานเรียนใหม่</h3>
+        </div>
+        <button class="modal-close-btn" id="modal-close-btn" aria-label="ปิดหน้าต่าง">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <form id="task-form" class="task-form">
+        <input type="hidden" id="task-id">
+
+        <!-- Task Title -->
+        <div class="form-group">
+          <label for="task-title-input" class="form-label required">ชื่องาน / หัวข้อการบ้าน</label>
+          <input type="text" id="task-title-input" class="form-input"
+            placeholder="เช่น ทำแบบฝึกหัดแคลคูลัสบทที่ 3, ส่งรายงาน AI Ethics..." required maxlength="120">
+        </div>
+
+        <!-- Row: Subject & Task Type -->
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="task-subject-input" class="form-label required">วิชา / รายวิชา</label>
+            <input type="text" id="task-subject-input" class="form-input"
+              placeholder="เช่น Calculus, AI Ethics, Data Structures" required maxlength="50" list="subjects-datalist">
+            <datalist id="subjects-datalist">
+              <option value="Calculus 1">
+              <option value="Data Structures & Algorithms">
+              <option value="AI & Society">
+              <option value="Physics for Engineers">
+              <option value="Academic English">
+              <option value="Applied Statistics">
+            </datalist>
+          </div>
+
+          <div class="form-group col-half">
+            <label for="task-type-select" class="form-label required">ประเภทงาน</label>
+            <select id="task-type-select" class="form-select" required>
+              <option value="individual" selected>งานเดี่ยว (งานของฉัน)</option>
+              <option value="group">งานกลุ่ม (โปรเจกต์กลุ่ม)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Task Description -->
+        <div class="form-group">
+          <label for="task-desc-input" class="form-label">รายละเอียด / ขอบเขตงาน</label>
+          <textarea id="task-desc-input" class="form-textarea" rows="3"
+            placeholder="ระบุข้อที่ต้องทำ ลิงก์เอกสาร หรือสิ่งที่อาจารย์มอบหมาย..."></textarea>
+        </div>
+
+        <!-- Row: Dates (Created Date & Deadline) -->
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="task-created-input" class="form-label required">วันที่สั่ง / วันที่เริ่ม</label>
+            <input type="date" id="task-created-input" class="form-input" required>
+          </div>
+
+          <div class="form-group col-half">
+            <label for="task-deadline-input" class="form-label required">กำหนดส่ง (Deadline)</label>
+            <input type="date" id="task-deadline-input" class="form-input" required>
+          </div>
+        </div>
+
+        <!-- Row: Status & Priority -->
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label for="task-status-select" class="form-label required">สถานะ</label>
+            <select id="task-status-select" class="form-select" required>
+              <option value="todo">รอดำเนินการ (To Do)</option>
+              <option value="in-progress">กำลังทำ (In Progress)</option>
+              <option value="review">รอตรวจ / ตรวจทาน (In Review)</option>
+              <option value="done">ส่งแล้ว / เสร็จสิ้น (Done)</option>
+            </select>
+          </div>
+
+          <div class="form-group col-half">
+            <label for="task-priority-select" class="form-label required">ระดับความสำคัญ</label>
+            <select id="task-priority-select" class="form-select" required>
+              <option value="low">ต่ำ (Low)</option>
+              <option value="medium" selected>ปานกลาง (Medium)</option>
+              <option value="high">สูง (High)</option>
+              <option value="urgent">ด่วนมาก (Urgent)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="modal-cancel-btn">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" id="modal-submit-btn">
+            <i data-lucide="check"></i>
+            <span>บันทึกงาน</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: View Task Details -->
+  <div class="modal-overlay" id="task-details-overlay" style="display:none;" aria-hidden="true">
+    <div class="modal-card details-card" id="task-details-modal" role="dialog" aria-labelledby="detail-title">
+      <div class="modal-header">
+        <div class="detail-badges" id="detail-header-badges"></div>
+        <button class="modal-close-btn" id="details-close-btn" aria-label="ปิด">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="details-body">
+        <h2 class="detail-title" id="detail-title">ชื่องาน</h2>
+        <p class="detail-desc" id="detail-desc">รายละเอียด</p>
+
+        <div class="detail-meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">
+              <i data-lucide="book-open"></i>
+              <span>วิชา:</span>
+            </span>
+            <span class="meta-val" id="detail-subject">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">
+              <i data-lucide="tag"></i>
+              <span>ประเภทงาน:</span>
+            </span>
+            <span class="meta-val" id="detail-type">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">
+              <i data-lucide="calendar"></i>
+              <span>วันที่สั่ง / วันที่เริ่ม:</span>
+            </span>
+            <span class="meta-val" id="detail-created-date">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">
+              <i data-lucide="clock"></i>
+              <span>กำหนดส่ง (Deadline):</span>
+            </span>
+            <span class="meta-val" id="detail-deadline">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">
+              <i data-lucide="info"></i>
+              <span>สถานะปัจจุบัน:</span>
+            </span>
+            <span class="meta-val" id="detail-status">-</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">
+              <i data-lucide="shield-alert"></i>
+              <span>ระดับความสำคัญ:</span>
+            </span>
+            <span class="meta-val" id="detail-priority">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer details-footer">
+        <button type="button" class="btn btn-danger-outline" id="btn-delete-task-detail">
+          <i data-lucide="trash-2"></i>
+          <span>ลบงาน</span>
+        </button>
+        <div class="details-right-actions">
+          <button type="button" class="btn btn-secondary" id="btn-edit-task-detail">
+            <i data-lucide="edit-3"></i>
+            <span>แก้ไขงาน</span>
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-toggle-done-detail">
+            <i data-lucide="check"></i>
+            <span id="btn-toggle-done-text">ทำเครื่องหมายเสร็จสิ้น</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Hub -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
